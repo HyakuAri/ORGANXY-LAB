@@ -116,8 +116,8 @@ export default defineConfig({
     ],
 
     footer: {
-      message: '基于 MIT 许可发布 | © 2026 Organxy Lab. All rights reserved.',
-      copyright: '<a href="/user_agreement">用户协议</a> | <a href="/privacy_policy">隐私政策</a>'
+      message: '基于 MIT 许可发布。',
+      copyright: '© 2026 OrganxyLab. All rights reserved.<br><a href="/user_agreement">用户协议</a> <a href="/privacy_policy">隐私政策</a>'
     },
 
     docFooter: {

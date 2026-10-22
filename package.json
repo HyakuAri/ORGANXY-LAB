@@ -1,1 +1,1 @@
-{"scripts":{"dev":"vitepress dev .","build":"vitepress build .","preview":"vitepress preview ."},"devDependencies":{"vitepress":"^1.6.4","vitepress-sidebar":"^1.33.1"},"dependencies":{"jszip":"^3.10.1","lucide-vue-next":"^0.562.0"}}
+{"scripts":{"dev":"vitepress dev .","build":"vitepress build .","preview":"vitepress preview ."},"devDependencies":{"vitepress":"^1.6.4","vitepress-sidebar":"^1.33.1"},"dependencies":{"html2canvas":"^1.4.1","jszip":"^3.10.1","lucide-vue-next":"^0.562.0","three":"^0.186.1"}}

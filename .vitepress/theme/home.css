@@ -1,0 +1,564 @@
+/* =========================================================
+   Home stage
+   Everything here is scoped under .home-stage (frontmatter pageClass)
+   ========================================================= */
+
+body:has(.home-stage) {
+  background-color: #05060a;
+}
+
+.home-stage {
+  background-color: #05060a;
+  color: #eef3f7;
+}
+
+.home-stage .VPContent {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.home-stage .VPLocalNav,
+.home-stage .VPFooter,
+.home-stage .VPSidebar {
+  display: none !important;
+}
+
+/* ---------- navigation over the stage ---------- */
+
+.home-stage .VPNav {
+  --vp-c-text-1: #eef3f7;
+  --vp-c-text-2: rgba(238, 243, 247, 0.6);
+  --vp-c-text-3: rgba(238, 243, 247, 0.38);
+  --vp-c-divider: rgba(255, 255, 255, 0.12);
+  --vp-c-gutter: rgba(255, 255, 255, 0.08);
+  --vp-c-bg: #05060a;
+  --vp-c-bg-alt: rgba(255, 255, 255, 0.04);
+  --vp-c-bg-soft: rgba(255, 255, 255, 0.06);
+  --vp-nav-bg-color: transparent;
+  --vp-c-brand-1: #c6ff3d;
+  --vp-c-brand-2: #b3ee2b;
+  background-color: transparent !important;
+}
+
+.home-stage .VPNavBar {
+  background-color: transparent !important;
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.home-stage .VPNavBar .content,
+.home-stage .VPNavBar .container,
+.home-stage .VPNavBar .content-body {
+  background-color: transparent !important;
+}
+
+.home-stage .VPNavBarTitle .title {
+  color: #f4f7fa;
+  letter-spacing: 0.01em;
+}
+
+.home-stage .VPNavBarMenuLink,
+.home-stage .VPNavBarMenuGroup .text {
+  color: rgba(238, 243, 247, 0.72);
+}
+
+.home-stage .VPNavBarMenuLink:hover,
+.home-stage .VPNavBarMenuLink.active,
+.home-stage .VPNavBarMenuGroup:hover .text {
+  color: #ffffff;
+}
+
+.home-stage .VPNavBarMenuLink.active {
+  color: #c6ff3d;
+}
+
+.home-stage .VPNavBarHamburger .top,
+.home-stage .VPNavBarHamburger .middle,
+.home-stage .VPNavBarHamburger .bottom {
+  background-color: #eef3f7;
+}
+
+.home-stage .VPNavBarSearch .DocSearch-Button,
+.home-stage .VPNavBarSearch .DocSearch-Button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(238, 243, 247, 0.8);
+}
+
+.home-stage .DocSearch-Button .DocSearch-Button-Placeholder,
+.home-stage .DocSearch-Button .DocSearch-Button-Key {
+  color: rgba(238, 243, 247, 0.55);
+}
+
+.home-stage .DocSearch-Button .DocSearch-Button-Key {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+
+.home-stage .VPSocialLink,
+.home-stage .VPSwitchAppearance .check,
+.home-stage .VPSwitchAppearance .switch {
+  color: rgba(238, 243, 247, 0.72);
+}
+
+.home-stage .VPSwitchAppearance {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.home-stage .layout-switch-btn {
+  color: rgba(238, 243, 247, 0.7);
+  border-color: rgba(255, 255, 255, 0.14);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.home-stage .VPNavScreen {
+  background-color: #05060a;
+}
+
+.home-stage .VPNavScreenMenuLink,
+.home-stage .VPNavScreenMenuGroup .text {
+  color: rgba(238, 243, 247, 0.8);
+}
+
+.home-stage .VPNavScreen .divider {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- stage shell ---------- */
+
+.stage {
+  position: relative;
+  min-height: 100svh;
+  color: #eef3f7;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.stage-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Only the wordmark is liquefied. Everything else stays crisp. */
+.stage-title {
+  display: block;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+  will-change: auto;
+}
+
+.home-stage {
+  --liquid-show: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3CradialGradient id='gc'%3E%3Cstop offset='0' stop-opacity='1'/%3E%3Cstop offset='0.5' stop-opacity='1'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='gd'%3E%3Cstop offset='0' stop-opacity='1'/%3E%3Cstop offset='0.5' stop-opacity='1'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='black' fill-opacity='0'/%3E%3Cellipse cx='10' cy='82' rx='13' ry='12' fill='url(%23gc)'/%3E%3Cellipse cx='78' cy='50' rx='11' ry='16' fill='url(%23gd)'/%3E%3C/svg%3E");
+  filter: url(#page-fx);
+}
+
+/* The crisp copy is clipped around the two liquid regions. */
+.stage-base {
+  position: relative;
+  z-index: 2;
+  clip-path: url(#stage-holes);
+}
+
+/* Full-page snapshot compositor: pixel blocks + downward stretch,
+   revealed only at random screen-space patches. */
+.page-compositor {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* A second copy of the content, liquefied, revealed only in the
+   same two screen-space regions. It stays non-interactive. */
+.stage-liquid {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  user-select: none;
+  filter: url(#lq-liquid);
+  -webkit-mask-image: var(--liquid-show);
+  mask-image: var(--liquid-show);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.stage-liquid .stage-inner {
+  min-height: 100svh;
+}
+
+/* Shown only when WebGL is unavailable or still warming up. */
+.stage::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(34% 40% at 74% 42%, rgba(255, 96, 40, 0.17), transparent 68%),
+    radial-gradient(55% 50% at 50% 108%, rgba(30, 58, 104, 0.22), transparent 70%),
+    linear-gradient(180deg, #05060a 0%, #07090e 58%, #030407 100%);
+}
+
+.shard-canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.15s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shard-canvas.is-ready {
+  opacity: 1;
+}
+
+.stage-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(110% 85% at 76% 42%, transparent 0%, rgba(5, 6, 10, 0.12) 52%, rgba(5, 6, 10, 0.62) 100%),
+    linear-gradient(90deg, rgba(5, 6, 10, 0.94) 0%, rgba(5, 6, 10, 0.72) 26%, rgba(5, 6, 10, 0.18) 52%, rgba(5, 6, 10, 0) 66%),
+    linear-gradient(0deg, rgba(5, 6, 10, 0.95) 0%, rgba(5, 6, 10, 0.55) 16%, rgba(5, 6, 10, 0) 34%);
+}
+
+.stage-inner {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  padding: 116px 6vw 26px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  column-gap: 4vw;
+}
+
+/* ---------- hero ---------- */
+
+.stage-hero {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  max-width: 780px;
+  pointer-events: none;
+}
+
+.stage-hero a {
+  pointer-events: auto;
+}
+
+.stage-eyebrow {
+  margin: 0 0 26px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  color: rgba(238, 243, 247, 0.48);
+}
+
+.stage-title {
+  margin: 0;
+  font-size: clamp(58px, 7.6vw, 152px);
+  line-height: 0.88;
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  background: linear-gradient(178deg, #ffffff 12%, #dbe5ee 46%, #8e9dab 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+.stage-sub {
+  margin: 26px 0 0;
+  font-size: clamp(20px, 2vw, 34px);
+  line-height: 1.2;
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  color: rgba(238, 243, 247, 0.82);
+}
+
+.stage-tag {
+  margin: 18px 0 0;
+  font-family: "SFMono-Regular", "Cascadia Mono", "Roboto Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  color: rgba(238, 243, 247, 0.42);
+}
+
+.stage-actions {
+  margin-top: 42px;
+  display: flex;
+  align-items: baseline;
+  gap: 34px;
+}
+
+.stage-primary {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #f7fafc;
+  text-decoration: none;
+  transition: color 0.35s ease;
+}
+
+.stage-primary::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: #c6ff3d;
+  transform: scaleX(0.36);
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+  opacity: 0.85;
+}
+
+.stage-primary:hover {
+  color: #ffffff;
+}
+
+.stage-primary:hover::after {
+  transform: scaleX(1);
+}
+
+.stage-secondary {
+  font-size: 13px;
+  color: rgba(238, 243, 247, 0.46);
+  text-decoration: none;
+  transition: color 0.35s ease;
+}
+
+.stage-secondary:hover {
+  color: rgba(238, 243, 247, 0.86);
+}
+
+/* ---------- index ---------- */
+
+.stage-index {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 28px;
+  max-width: 1040px;
+  margin: 0;
+  padding: 24px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.stage-index-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 0 0 12px;
+  text-decoration: none;
+}
+
+.stage-index-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: #c6ff3d;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.8;
+}
+
+.stage-index-item:hover::after {
+  transform: scaleX(1);
+}
+
+.stage-index-title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(238, 243, 247, 0.88);
+  transition: color 0.3s ease;
+}
+
+.stage-index-item:hover .stage-index-title {
+  color: #ffffff;
+}
+
+.stage-index-desc {
+  max-width: 216px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(238, 243, 247, 0.4);
+  transition: color 0.3s ease;
+}
+
+.stage-index-item:hover .stage-index-desc {
+  color: rgba(238, 243, 247, 0.62);
+}
+
+/* ---------- meta ---------- */
+
+.stage-meta {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 26px;
+  margin-top: 22px;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: rgba(238, 243, 247, 0.3);
+}
+
+.stage-legal {
+  display: inline-flex;
+  gap: 16px;
+}
+
+.stage-legal a {
+  color: rgba(238, 243, 247, 0.36);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.stage-legal a:hover {
+  color: rgba(238, 243, 247, 0.78);
+}
+
+::selection {
+  background: rgba(198, 255, 61, 0.28);
+  color: #0a0c0a;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 1180px) {
+  .stage-inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    padding-top: 104px;
+  }
+
+  .stage-hero {
+    grid-column: 1;
+    align-self: start;
+    max-width: 640px;
+  }
+
+  .stage-index {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 32px;
+    max-width: 640px;
+    margin-top: 48px;
+  }
+
+  .stage-meta {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 820px) {
+  .stage-inner {
+    min-height: 100svh;
+    padding: 46vh 7vw 26px;
+  }
+
+  .stage-hero {
+    margin: 0;
+  }
+
+  .stage-eyebrow {
+    margin-bottom: 18px;
+    letter-spacing: 0.28em;
+  }
+
+  .stage-title {
+    font-size: clamp(44px, 13vw, 86px);
+  }
+
+  .stage-sub {
+    margin-top: 18px;
+    font-size: 20px;
+  }
+
+  .stage-tag {
+    margin-top: 14px;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+  }
+
+  .stage-actions {
+    margin-top: 30px;
+    gap: 24px;
+  }
+
+  .stage-primary {
+    font-size: 14px;
+  }
+
+  .stage-secondary {
+    font-size: 12px;
+  }
+
+  .stage-index {
+    margin-top: 34px;
+    gap: 18px 20px;
+    padding-top: 18px;
+  }
+
+  .stage-index-title {
+    font-size: 14px;
+  }
+
+  .stage-index-desc {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .stage-meta {
+    margin-top: 26px;
+    font-size: 9px;
+    gap: 8px 18px;
+  }
+}
+
+@media (max-width: 420px) {
+  .stage-index {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stage-index-desc {
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-primary::after,
+  .stage-index-item::after,
+  .stage-primary,
+  .stage-index-title,
+  .stage-index-desc {
+    transition: none;
+  }
+}
