@@ -12,162 +12,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { createEnvironment } from '../home/env.js'
-
-/* ------------------------------------------------------------
-   Screen-space liquefaction patches.
-   These two regions match the CSS mask on the decorative copy:
-   bottom-left and right-middle. The star and the background
-   are warped here; the DOM copy is warped by the SVG filter.
-   ------------------------------------------------------------ */
-
-const LiquidShader = {
-  name: 'StageLiquid',
-  uniforms: {
-    tDiffuse: { value: null },
-    uTime: { value: 0 },
-    uResolution: { value: new THREE.Vector2(1, 1) },
-    uStretch: { value: 1 },
-    uGrid: { value: 90 }
-  },
-  vertexShader: /* glsl */ `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: /* glsl */ `
-    uniform sampler2D tDiffuse;
-    uniform float uTime;
-    uniform vec2 uResolution;
-    uniform float uStretch;
-    uniform float uGrid;
-    varying vec2 vUv;
-
-    float liquidHash(vec2 p) {
-      p = fract(p * vec2(123.34, 456.21));
-      p += dot(p, p + 45.32);
-      return fract(p.x * p.y);
-    }
-
-    float liquidNoise(vec2 p) {
-      vec2 i = floor(p);
-      vec2 f = fract(p);
-      vec2 u = f * f * (3.0 - 2.0 * f);
-      float a = liquidHash(i);
-      float b = liquidHash(i + vec2(1.0, 0.0));
-      float c = liquidHash(i + vec2(0.0, 1.0));
-      float d = liquidHash(i + vec2(1.0, 1.0));
-      return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
-    }
-
-    float liquidFbm(vec2 p) {
-      float v = 0.0;
-      float a = 0.5;
-      for (int i = 0; i < 4; i++) {
-        v += a * liquidNoise(p);
-        p = p * 2.03 + vec2(17.1, 9.2);
-        a *= 0.5;
-      }
-      return v;
-    }
-
-    void main() {
-      vec2 p = vUv;
-
-      vec2 d1 = (p - vec2(0.10, 0.18)) / vec2(0.13, 0.12);
-      vec2 d2 = (p - vec2(0.78, 0.50)) / vec2(0.11, 0.16);
-      float m1 = 1.0 - smoothstep(0.55, 1.35, length(d1));
-      float m2 = 1.0 - smoothstep(0.55, 1.35, length(d2));
-      float m = clamp(m1 + m2, 0.0, 1.0);
-
-      float n1 = liquidFbm(p * 6.0 + vec2(uTime * 0.035, -uTime * 0.02));
-      float n2 = liquidFbm(p * 6.0 + vec2(11.0, 4.0) - vec2(uTime * 0.028, uTime * 0.018));
-      vec2 uv = p + (vec2(n1, n2) - 0.5) * 0.055 * m;
-
-      float ca = 0.0018 * m;
-      vec3 col;
-      col.r = texture2D(tDiffuse, uv + vec2(ca, 0.0)).r;
-      col.g = texture2D(tDiffuse, uv).g;
-      col.b = texture2D(tDiffuse, uv - vec2(ca, 0.0)).b;
-
-      // Whole-page edge smear: find the nearest edge above, drag its
-      // colour downward in one-pixel columns and fade it out.
-      vec2 px = vec2(1.0) / uResolution;
-      vec3 smear = vec3(0.0);
-      float smearWeight = 0.0;
-
-      for (int i = 1; i <= 40; i++) {
-        vec2 suv = p + vec2(0.0, float(i) * px.y * 1.6);
-
-        float l = dot(texture2D(tDiffuse, suv - vec2(px.x, 0.0)).rgb, vec3(0.2126, 0.7152, 0.0722));
-        float r = dot(texture2D(tDiffuse, suv + vec2(px.x, 0.0)).rgb, vec3(0.2126, 0.7152, 0.0722));
-        float u = dot(texture2D(tDiffuse, suv + vec2(0.0, px.y)).rgb, vec3(0.2126, 0.7152, 0.0722));
-        float d = dot(texture2D(tDiffuse, suv - vec2(0.0, px.y)).rgb, vec3(0.2126, 0.7152, 0.0722));
-        float e = length(vec2(r - l, u - d));
-
-        if (e > 0.07) {
-          vec3 c;
-          c.r = texture2D(tDiffuse, suv + vec2(0.0015, 0.0)).r;
-          c.g = texture2D(tDiffuse, suv).g;
-          c.b = texture2D(tDiffuse, suv - vec2(0.0015, 0.0)).b;
-
-          float w = 1.0 - float(i) / 41.0;
-          smear += c * w;
-          smearWeight += w;
-        }
-      }
-
-      if (smearWeight > 0.0) {
-        vec3 sc = smear / smearWeight;
-        float alpha = clamp(smearWeight * 0.055, 0.0, 0.6) * uStretch;
-        col = mix(col, sc, alpha);
-      }
-
-      // Pixelation is handled by the full-page compositor.
-
-      // Blender compositor: sun beams, mist, vignette, aberration.
-      vec2 sunPos = vec2(0.5, 0.53);
-      vec2 sunStep = (p - sunPos) * 0.085;
-      vec3 beam = vec3(0.0);
-      float beamWeight = 0.0;
-
-      for (int i = 0; i < 20; i++) {
-        vec3 c = texture2D(tDiffuse, p - sunStep * float(i)).rgb;
-        float b = max(max(c.r, c.g), c.b);
-        float w = smoothstep(2.0, 5.0, b) * (1.0 - float(i) / 21.0);
-        beam += c * w;
-        beamWeight += w;
-      }
-
-      if (beamWeight > 0.0) {
-        beam /= beamWeight;
-        col += beam * vec3(1.0, 0.72, 0.46) * 0.18;
-      }
-
-      vec3 mist = vec3(0.0);
-      for (int i = 0; i < 12; i++) {
-        float a = float(i) * 0.5236;
-        vec2 off = vec2(cos(a), sin(a)) * 0.012;
-        vec3 c = texture2D(tDiffuse, p + off).rgb;
-        mist += c * smoothstep(0.8, 2.5, max(max(c.r, c.g), c.b));
-      }
-      col += mist * 0.035;
-
-      float vignette = 1.0 - 0.667 * pow(clamp(length((p - 0.5) * 1.35), 0.0, 1.0), 2.0 + 0.525 * 2.0);
-      col *= vignette;
-
-      float caShift = 0.117 * 0.012;
-      vec3 caCol;
-      caCol.r = texture2D(tDiffuse, p + vec2(caShift, 0.0)).r;
-      caCol.g = texture2D(tDiffuse, p).g;
-      caCol.b = texture2D(tDiffuse, p - vec2(caShift, 0.0)).b;
-      col = mix(col, caCol, 0.55);
-
-      gl_FragColor = vec4(col, 1.0);
-    }
-  `
-}
+import { resolveQuality, PRESETS } from '../home/quality.js'
+import { buildLiquidShader } from '../home/liquid-shader.js'
 
 const canvasEl = ref(null)
 
@@ -184,6 +30,7 @@ let envTexture = null
 let composer = null
 let liquidPass = null
 let stretchTimer = 0
+let spotTimer = 0
 let rafId = 0
 let running = false
 let stillMode = false
@@ -192,6 +39,14 @@ let forcedTime = 2.8
 let t = 0
 let ready = false
 let lastFrameTime = 0
+
+/* Quality */
+let preset = PRESETS.high
+let baseDpr = 1
+let scale = 1
+let avgFrame = 16
+let tuneBudget = 0
+const MIN_SCALE = 0.55
 
 const pointer = new THREE.Vector2(0, 0)
 const pointerTarget = new THREE.Vector2(0, 0)
@@ -383,18 +238,36 @@ function addBackdrop() {
    ------------------------------------------------------------ */
 
 function buildMaterials() {
-  glassMaterial = new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(0xffffff),
-    metalness: 0.0,
-    roughness: 0.093,
-    transmission: 1.0,
-    thickness: 0.9,
-    ior: 1.3,
-    clearcoat: 0.0,
-    envMapIntensity: 1.5,
-    dispersion: 0.35,
-    side: THREE.FrontSide
-  })
+  // A real transmission pass means three.js renders the whole scene a
+  // second time into a back buffer. Desktops can afford it; phones get
+  // a refractive-looking blend instead, which is visually close at this
+  // size and costs a fraction.
+  glassMaterial = preset.transmission
+    ? new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(0xffffff),
+        metalness: 0.0,
+        roughness: 0.093,
+        transmission: 1.0,
+        thickness: 0.9,
+        ior: 1.3,
+        clearcoat: 0.0,
+        envMapIntensity: 1.5,
+        dispersion: preset.dispersion ? 0.35 : 0.0,
+        side: THREE.FrontSide
+      })
+    : new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(0xdfe8f2),
+        metalness: 0.15,
+        roughness: 0.08,
+        ior: 1.3,
+        clearcoat: 0.6,
+        clearcoatRoughness: 0.1,
+        envMapIntensity: 2.0,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+        side: THREE.FrontSide
+      })
   applyShardMask(glassMaterial, true)
 
   chromeMaterial = new THREE.MeshPhysicalMaterial({
@@ -437,10 +310,10 @@ function loadShard() {
       const size = box.getSize(new THREE.Vector3())
       const center = box.getCenter(new THREE.Vector3())
       const maxDim = Math.max(size.x, size.y, size.z) || 1
-      const scale = 3.55 / maxDim
+      const fit = 3.55 / maxDim
 
-      model.scale.multiplyScalar(scale)
-      model.position.set(-center.x * scale, -center.y * scale, -center.z * scale)
+      model.scale.multiplyScalar(fit)
+      model.position.set(-center.x * fit, -center.y * fit, -center.z * fit)
 
       const shells = []
       let core = null
@@ -489,7 +362,7 @@ function loadShard() {
       console.log(
         '[shard] loaded',
         'size', size.toArray().map((v) => v.toFixed(2)).join(' '),
-        'scale', scale.toFixed(3),
+        'scale', fit.toFixed(3),
         'shells', shells.length,
         'core', !!core
       )
@@ -572,15 +445,101 @@ function renderStillFrame() {
   markReady()
 }
 
-function loop() {
+/* ------------------------------------------------------------
+   Resolution scaling: keep the frame rate, spend pixels on it.
+
+   Instead of a fixed devicePixelRatio we watch the frame time and
+   trade resolution for smoothness, then give the pixels back when
+   the GPU has headroom again.
+   ------------------------------------------------------------ */
+
+function syncResolution(w, h) {
+  if (!liquidPass || !renderer) return
+  const size = renderer.getDrawingBufferSize(new THREE.Vector2())
+  liquidPass.uniforms.uResolution.value.copy(size)
+  liquidPass.uniforms.uAspect.value = h / Math.max(w, 1)
+}
+
+function applyPixelRatio() {
+  if (!renderer) return
+
+  const w = window.innerWidth
+  const h = window.innerHeight
+
+  renderer.setPixelRatio(baseDpr * scale)
+
+  if (composer) {
+    composer.setPixelRatio(renderer.getPixelRatio())
+    composer.setSize(w, h)
+  }
+
+  syncResolution(w, h)
+}
+
+function tuneResolution(ms) {
+  if (preset.fps || stillMode || reducedMotion) return
+
+  avgFrame = avgFrame * 0.92 + ms * 0.08
+  if (performance.now() < tuneBudget) return
+
+  let next = scale
+  if (avgFrame > 24) next = Math.max(MIN_SCALE, scale - 0.12)
+  else if (avgFrame < 13 && scale < 1) next = Math.min(1, scale + 0.08)
+
+  if (Math.abs(next - scale) > 0.05) {
+    scale = next
+    applyPixelRatio()
+    tuneBudget = performance.now() + 1200
+  }
+}
+
+/* ------------------------------------------------------------
+   Glitch patches
+   ------------------------------------------------------------ */
+
+function randomizeSpots() {
+  if (!liquidPass) return
+
+  const spots = liquidPass.uniforms.uSpots.value
+  const count = Math.min(spots.length, preset.spots)
+  const w = Math.max(window.innerWidth, 1)
+  const h = Math.max(window.innerHeight, 1)
+
+  for (let i = 0; i < spots.length; i++) {
+    const s = spots[i]
+    if (i >= count) {
+      s.set(0, 0, 0, 0)
+      continue
+    }
+
+    const onRight = Math.random() < 0.7
+    const cx = onRight ? Math.random() * 0.5 : Math.random() * 0.5 - 0.25
+    const cy = Math.random() - 0.5
+    const hw = (12 + Math.random() * 30) / w
+    const hh = (12 + Math.random() * 34) / h
+
+    s.set(0.5 + cx, 0.5 + cy, Math.max(hw, 0.01), Math.max(hh, 0.01))
+  }
+
+  liquidPass.uniforms.uGrid.value = 48 + Math.random() * 42
+  liquidPass.uniforms.uSpotMix.value = 0.75 + Math.random() * 0.25
+}
+
+/* ------------------------------------------------------------
+   Loop
+   ------------------------------------------------------------ */
+
+function loop(now) {
   if (!running) return
   rafId = requestAnimationFrame(loop)
 
-  const now = performance.now()
+  if (preset.fps && now - lastFrameTime < 1000 / preset.fps - 1) return
+
   const dt = Math.min((now - lastFrameTime) / 1000, 0.05)
   lastFrameTime = now
   t += dt
 
+  tuneResolution(dt * 1000)
   updateScene(dt)
   renderFrame()
 }
@@ -604,11 +563,7 @@ function onResize() {
   camera.aspect = w / h
   camera.updateProjectionMatrix()
   renderer.setSize(w, h, false)
-  if (composer) composer.setSize(w, h)
-  if (liquidPass) {
-    const pixelRatio = renderer.getPixelRatio()
-    liquidPass.uniforms.uResolution.value.set(w * pixelRatio, h * pixelRatio)
-  }
+  applyPixelRatio()
   layoutScene(w, h)
 
   if (stillMode || reducedMotion) {
@@ -633,7 +588,7 @@ function onVisibilityChange() {
   } else if (!running) {
     running = true
     lastFrameTime = performance.now()
-    loop()
+    loop(performance.now())
   }
 }
 
@@ -646,6 +601,7 @@ function dispose() {
   window.removeEventListener('pointermove', onPointerMove)
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.clearInterval(stretchTimer)
+  window.clearInterval(spotTimer)
 
   if (scene) {
     const geometries = new Set()
@@ -693,20 +649,26 @@ function init() {
   reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   forcedTime = Number(params.get('t') || (stillMode ? 2.8 : 2.2))
 
+  preset = PRESETS[resolveQuality()] || PRESETS.balanced
+  baseDpr = Math.max(0.75, Math.min(window.devicePixelRatio || 1, preset.dprMax))
+
   try {
     renderer = new THREE.WebGLRenderer({
       canvas: canvasEl.value,
-      antialias: true,
+      // The composer resolves into its own target, so canvas MSAA buys
+      // nothing; antialiasing comes from the composer samples instead.
+      antialias: false,
       alpha: false,
       powerPreference: 'high-performance',
-      preserveDrawingBuffer: true
+      preserveDrawingBuffer: false,
+      stencil: false
     })
   } catch (error) {
     console.warn('[shard] WebGL is not available', error)
     return
   }
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.setPixelRatio(baseDpr)
   renderer.setSize(window.innerWidth, window.innerHeight, false)
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -728,24 +690,31 @@ function init() {
 
   const size = renderer.getDrawingBufferSize(new THREE.Vector2())
   const renderTarget = new THREE.WebGLRenderTarget(size.x, size.y, {
-    type: THREE.HalfFloatType,
-    samples: 4
+    type: preset.halfFloat ? THREE.HalfFloatType : THREE.UnsignedByteType,
+    samples: preset.samples
   })
 
   composer = new EffectComposer(renderer, renderTarget)
+  composer.setPixelRatio(renderer.getPixelRatio())
   composer.addPass(new RenderPass(scene, camera))
 
-  liquidPass = new ShaderPass(LiquidShader)
+  liquidPass = new ShaderPass(buildLiquidShader(preset))
   liquidPass.uniforms.uResolution.value.copy(size)
+  liquidPass.uniforms.uAspect.value = window.innerHeight / Math.max(window.innerWidth, 1)
   composer.addPass(liquidPass)
   composer.addPass(new OutputPass())
   composer.setSize(window.innerWidth, window.innerHeight)
 
   if (!reducedMotion && !stillMode) {
+    randomizeSpots()
+
+    // Two timers, both cheap: one re-rolls the glitch patches, one
+    // nudges how hard the edge smear is pushed.
+    spotTimer = window.setInterval(randomizeSpots, 620)
+
     stretchTimer = window.setInterval(() => {
       if (liquidPass) {
         liquidPass.uniforms.uStretch.value = 0.7 + Math.random() * 1.0
-        liquidPass.uniforms.uGrid.value = 70 + Math.random() * 80
       }
     }, 200)
   }
@@ -761,8 +730,32 @@ function init() {
   } else {
     running = true
     lastFrameTime = performance.now()
-    loop()
+    tuneBudget = lastFrameTime + 3000
+    loop(lastFrameTime)
   }
+
+  if (params.get('perf') === '1') startPerfLog()
+}
+
+function startPerfLog() {
+  let frames = 0
+  let last = performance.now()
+
+  window.setInterval(() => {
+    const now = performance.now()
+    const fps = (frames * 1000) / (now - last)
+    console.log(
+      `[perf] fps ${fps.toFixed(1)} · scale ${scale.toFixed(2)} · dpr ${(baseDpr * scale).toFixed(2)}`
+    )
+    frames = 0
+    last = now
+  }, 2000)
+
+  const count = () => {
+    frames++
+    requestAnimationFrame(count)
+  }
+  requestAnimationFrame(count)
 }
 
 onMounted(() => {

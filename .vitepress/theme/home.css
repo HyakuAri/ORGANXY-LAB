@@ -154,42 +154,54 @@ body:has(.home-stage) {
 
 .home-stage {
   --liquid-show: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3CradialGradient id='gc'%3E%3Cstop offset='0' stop-opacity='1'/%3E%3Cstop offset='0.5' stop-opacity='1'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/radialGradient%3E%3CradialGradient id='gd'%3E%3Cstop offset='0' stop-opacity='1'/%3E%3Cstop offset='0.5' stop-opacity='1'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100' height='100' fill='black' fill-opacity='0'/%3E%3Cellipse cx='10' cy='82' rx='13' ry='12' fill='url(%23gc)'/%3E%3Cellipse cx='78' cy='50' rx='11' ry='16' fill='url(%23gd)'/%3E%3C/svg%3E");
-  filter: url(#page-fx);
 }
 
-/* The crisp copy is clipped around the two liquid regions. */
+/* The crisp copy is clipped around the two liquid regions.
+   The chromatic split lives here, on the text layer only: applied to
+   the whole page it also covered the live WebGL canvas, which forced a
+   full-viewport filter re-run on every single frame. */
 .stage-base {
   position: relative;
   z-index: 2;
   clip-path: url(#stage-holes);
-}
-
-/* Full-page snapshot compositor: pixel blocks + downward stretch,
-   revealed only at random screen-space patches. */
-.page-compositor {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+  filter: url(#page-fx);
 }
 
 /* A second copy of the content, liquefied, revealed only in the
-   same two screen-space regions. It stays non-interactive. */
+   same two screen-space regions. It stays non-interactive.
+
+   The displacement map is static, so the filtered result is rasterised
+   once and then cached as a texture; the slow drift is a compositor
+   transform on that cached texture, not a filter re-run. */
 .stage-liquid {
   position: absolute;
   inset: 0;
   z-index: 3;
   pointer-events: none;
   user-select: none;
-  filter: url(#lq-liquid);
   -webkit-mask-image: var(--liquid-show);
   mask-image: var(--liquid-show);
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
+}
+
+.liquid-warp {
+  position: absolute;
+  inset: 0;
+  filter: url(#lq-liquid);
+  will-change: transform;
+  animation: liquid-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes liquid-drift {
+  from {
+    transform: translate3d(-0.6%, 0.4%, 0) scale(1.01) rotate(-0.15deg);
+  }
+  to {
+    transform: translate3d(0.9%, -0.7%, 0) scale(1.025) rotate(0.2deg);
+  }
 }
 
 .stage-liquid .stage-inner {
@@ -553,6 +565,27 @@ body:has(.home-stage) {
   }
 }
 
+/* ---------- quality tiers ---------- */
+
+/* Phones/tablets: the two liquid regions are a full-viewport SVG filter
+   plus a second copy of the whole DOM. The 3D stage already carries the
+   look; drop the filter layers entirely and stop blurring the nav bar
+   over a live canvas. */
+html[data-q="low"] .stage-liquid {
+  display: none;
+}
+
+html[data-q="low"] .stage-base {
+  filter: none;
+  clip-path: none;
+}
+
+html[data-q="low"] .home-stage .VPNavBar {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background-color: rgba(5, 6, 10, 0.72) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .stage-primary::after,
   .stage-index-item::after,
@@ -560,5 +593,10 @@ body:has(.home-stage) {
   .stage-index-title,
   .stage-index-desc {
     transition: none;
+  }
+
+  .liquid-warp {
+    animation: none;
+    will-change: auto;
   }
 }
